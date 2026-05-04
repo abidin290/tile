@@ -1,0 +1,4 @@
+com.example.tile.test.app-androidTest-0 E:\selamat\tile\app\build\generated\res\resValues\androidTest\debug
+com.example.tile.test.app-mergeDebugAndroidTestResources-1 E:\selamat\tile\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
+com.example.tile.test.app-mergeDebugAndroidTestResources-2 E:\selamat\tile\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
+com.example.tile.test.app-debugAndroidTest-3 E:\selamat\tile\app\build\intermediates\merged_res\debugAndroidTest\mergeDebugAndroidTestResources

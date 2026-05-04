@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">QuickTile</string>
+
+    <!-- Tile labels -->
+    <string name="tile_screenshot">Screenshot</string>
+    <string name="tile_volume">Volume</string>
+
+    <!-- Notifications -->
+    <string name="notif_enable_accessibility">Mohon aktifkan Aksesibilitas untuk QuickTile Screenshot Service</string>
+    <string name="accessibility_service_description">Layanan ini dibutuhkan HANYA untuk menjalankan fitur Screenshot melalui Quick Settings Tile. Layanan ini sangat ringan dan tidak memantau aktivitas layar Anda sama sekali.</string>
+    <string name="notif_screenshot_failed">Screenshot gagal. Pastikan OS Anda mendukung fitur ini.</string>
+</resources>

@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212"
+    android:keepScreenOn="true">
+
+    <!-- ════════════════════════════════════
+         TOP TOOLBAR
+         ════════════════════════════════════ -->
+    <RelativeLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#1A1A1A"
+        android:elevation="4dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
+
+        <TextView
+            android:id="@+id/btnCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:gravity="center"
+            android:text="Batal"
+            android:textColor="#FF4A4A"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <!-- Undo Button -->
+            <ImageView
+                android:id="@+id/btnUndo"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@android:drawable/ic_menu_revert"
+                android:tint="#FFFFFF"
+                android:contentDescription="Undo"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="8dp"
+                android:layout_marginEnd="8dp" />
+
+            <!-- Redo Button -->
+            <ImageView
+                android:id="@+id/btnRedo"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@android:drawable/ic_menu_revert"
+                android:scaleX="-1"
+                android:tint="#FFFFFF"
+                android:contentDescription="Redo"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="8dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <!-- Share Button -->
+            <ImageView
+                android:id="@+id/btnShare"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@android:drawable/ic_menu_share"
+                android:tint="#FFFFFF"
+                android:contentDescription="Bagikan"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="8dp"
+                android:layout_marginEnd="12dp" />
+
+            <!-- Save Button -->
+            <TextView
+                android:id="@+id/btnSave"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_btn_save"
+                android:text="Simpan"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- ════════════════════════════════════
+         MAIN CANVAS
+         ════════════════════════════════════ -->
+    <com.aarash.idin.MarkupCanvasView
+        android:id="@+id/canvasView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/optionsPanel"
+        android:layout_below="@id/topBar" />
+
+    <!-- ════════════════════════════════════
+         OPTIONS PANEL (CONDITIONAL CONFIGS)
+         ════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/optionsPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/bottomToolbar"
+        android:background="#1A1A1A"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:elevation="6dp">
+
+        <!-- Paint & Brush Options (Colors & Thickness) -->
+        <LinearLayout
+            android:id="@+id/panelBrushOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <!-- Size Seekbar -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ukuran"
+                    android:textColor="#CCCCCC"
+                    android:textSize="12sp"
+                    android:layout_marginEnd="8dp" />
+
+                <SeekBar
+                    android:id="@+id/seekBarBrushSize"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="100"
+                    android:progress="12" />
+            </LinearLayout>
+
+            <!-- Color Palette selection -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <!-- Red -->
+                <View
+                    android:id="@+id/colorRed"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="6dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <!-- Yellow -->
+                <View
+                    android:id="@+id/colorYellow"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="6dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <!-- Green -->
+                <View
+                    android:id="@+id/colorGreen"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="6dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <!-- Blue -->
+                <View
+                    android:id="@+id/colorBlue"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="6dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <!-- White -->
+                <View
+                    android:id="@+id/colorWhite"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="6dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <!-- Black -->
+                <View
+                    android:id="@+id/colorBlack"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="6dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Shapes Selector Options -->
+        <LinearLayout
+            android:id="@+id/panelShapeOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp">
+
+            <Button
+                android:id="@+id/btnShapeRect"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="6dp"
+                android:text="Persegi"
+                android:textSize="11sp"
+                style="?android:attr/buttonStyleSmall" />
+
+            <Button
+                android:id="@+id/btnShapeRoundRect"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="6dp"
+                android:text="Kotak Bulat"
+                android:textSize="11sp"
+                style="?android:attr/buttonStyleSmall" />
+
+            <Button
+                android:id="@+id/btnShapeCircle"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="6dp"
+                android:text="Oval"
+                android:textSize="11sp"
+                style="?android:attr/buttonStyleSmall" />
+
+            <Button
+                android:id="@+id/btnShapeLine"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="6dp"
+                android:text="Garis"
+                android:textSize="11sp"
+                style="?android:attr/buttonStyleSmall" />
+
+            <Button
+                android:id="@+id/btnShapeArrow"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Panah"
+                android:textSize="11sp"
+                style="?android:attr/buttonStyleSmall" />
+        </LinearLayout>
+
+        <!-- Crop Selector Options -->
+        <LinearLayout
+            android:id="@+id/panelCropOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp">
+
+            <Button
+                android:id="@+id/btnCropFree"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:text="Bebas"
+                android:textSize="11sp"
+                style="?android:attr/buttonStyleSmall" />
+
+            <Button
+                android:id="@+id/btnCrop1_1"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:text="1:1"
+                android:textSize="11sp"
+                style="?android:attr/buttonStyleSmall" />
+
+            <Button
+                android:id="@+id/btnCrop4_3"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:text="4:3"
+                android:textSize="11sp"
+                style="?android:attr/buttonStyleSmall" />
+
+            <Button
+                android:id="@+id/btnCrop16_9"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:text="16:9"
+                android:textSize="11sp"
+                style="?android:attr/buttonStyleSmall" />
+
+            <Button
+                android:id="@+id/btnCropReset"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Full"
+                android:textSize="11sp"
+                style="?android:attr/buttonStyleSmall" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ════════════════════════════════════
+         BOTTOM TOOLBAR (MAIN TOOLS)
+         ════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/bottomToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_alignParentBottom="true"
+        android:background="#151515"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:elevation="8dp">
+
+        <!-- Brush -->
+        <TextView
+            android:id="@+id/toolBrush"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Coret"
+            android:textColor="#1A73E8"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Shapes -->
+        <TextView
+            android:id="@+id/toolShape"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Bentuk"
+            android:textColor="#88FFFFFF"
+            android:textSize="12sp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Crop -->
+        <TextView
+            android:id="@+id/toolCrop"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Potong"
+            android:textColor="#88FFFFFF"
+            android:textSize="12sp"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- ════════════════════════════════════
+         CUSTOM OVERLAY DIALOG (CANCEL CONFIRMATION)
+         ════════════════════════════════════ -->
+    <RelativeLayout
+        android:id="@+id/dialogCancelOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#D9000000" 
+        android:gravity="center"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_dialog_popup"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Batalkan Edit"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Apakah Anda ingin membuang semua coretan dan perubahan?"
+                android:textColor="#CCCCCC"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:layout_marginBottom="24dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- Cancel Dismiss -->
+                <Button
+                    android:id="@+id/dialogCancelBtnNo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Tidak"
+                    android:textColor="#FFFFFF"
+                    android:background="@android:color/transparent"
+                    style="?android:attr/buttonBarButtonStyle" />
+
+                <!-- Cancel Confirm -->
+                <Button
+                    android:id="@+id/dialogCancelBtnYes"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Ya, Buang"
+                    android:textColor="#FF4A4A"
+                    android:background="@android:color/transparent"
+                    style="?android:attr/buttonBarButtonStyle"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
+</RelativeLayout>

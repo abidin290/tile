@@ -1,4 +1,4 @@
-package com.example.tile
+package com.aarash.idin
 
 import android.annotation.SuppressLint
 import android.content.ComponentName

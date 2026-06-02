@@ -4,15 +4,15 @@ plugins {
 }
 
 android {
-    namespace = "com.example.tile"
+    namespace = "com.aarash.idin"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.tile"
+        applicationId = "com.aarash.idin"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.7"
     }
 
     buildTypes {

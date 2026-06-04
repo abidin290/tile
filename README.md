@@ -62,6 +62,17 @@ Setelah laci ditutup, layanan Aksesibilitas memanggil `takeScreenshot(...)` pada
 
 ---
 
+## 📦 Riwayat Rilis
+
+### v1.8 (Rilisan Terbaru)
+* **Floating Orange UI Redesign**: Tampilan editor markup baru bertema oranye melayang yang modern dan minimalis. Area penyuntingan kini 100% full-screen tanpa bar atas abu-abu.
+* **Tombol Batal Instan**: Menambahkan tombol Batal (X) di toolbar utama bawah untuk pembatalan edit yang cepat dengan dialog konfirmasi kustom.
+* **Ikon Undo & Redo Kustom**: Mengganti tombol teks biasa dengan ikon grafis bulat minimalis untuk Undo/Redo di dalam panel opsi Coret (Brush) dan Potong (Crop).
+* **Sinkronisasi Visual Area Potong**: Area potongan yang telah diatur tetap dipertahankan secara visual dengan garis batas putih dan efek redup ketika beralih ke mode Coret (Brush) agar visual dan hasil save/share tetap sinkron.
+* **Optimasi Performa**: Menyederhanakan logika kanvas penyuntingan agar proses corat-coret berjalan super lancar dan ringan.
+
+---
+
 ## 🛡️ Keamanan & Privasi
 
 Aplikasi ini 100% aman, privat, dan *open-source*. 

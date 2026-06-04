@@ -26,11 +26,6 @@ import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
 
-/**
- * Layanan Aksesibilitas yang super responsif.
- * Menyediakan fitur Screenshot Tile instan dan Markup Editor langsung
- * berbasis WindowManager Overlay (tanpa beralih Activity).
- */
 class ScreenshotAccessibilityService : AccessibilityService() {
 
     companion object {
@@ -43,17 +38,20 @@ class ScreenshotAccessibilityService : AccessibilityService() {
     private var overlayView: View? = null
     private var canvasView: MarkupCanvasView? = null
     private var dialogCancelOverlay: View? = null
+    private var optionsPanel: View? = null
     private var isOverlayShowing = false
+    private var activeColor = Color.RED
 
     private val colors = intArrayOf(
         Color.RED,
-        Color.parseColor("#FFD700"), // Gold/Yellow
+        Color.parseColor("#FFD700"), // Yellow/Gold
         Color.GREEN,
         Color.BLUE,
+        Color.CYAN,
+        Color.parseColor("#008080"), // Tosca
         Color.WHITE,
         Color.BLACK
     )
-    private var activeColor = Color.RED
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -71,9 +69,6 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         return super.onUnbind(intent)
     }
 
-    /**
-     * Menangani penekanan tombol BACK fisik secara global ketika editor melayang aktif.
-     */
     override fun onKeyEvent(event: KeyEvent): Boolean {
         if (event.keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_DOWN) {
             if (isOverlayShowing) {
@@ -88,18 +83,14 @@ class ScreenshotAccessibilityService : AccessibilityService() {
                         dismissMarkupOverlay()
                     }
                 }
-                return true // Konsumsi event tombol BACK agar tidak memengaruhi aplikasi lain
+                return true
             }
         }
         return super.onKeyEvent(event)
     }
 
-    /**
-     * Dipanggil oleh ScreenshotTileService saat tile ditekan.
-     */
     fun takeScreenshot() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Android 11 (API 30)+ capture programmatically
             try {
                 takeScreenshot(
                     android.view.Display.DEFAULT_DISPLAY,
@@ -109,12 +100,10 @@ class ScreenshotAccessibilityService : AccessibilityService() {
                             val hardwareBuffer = screenshotResult.hardwareBuffer
                             val colorSpace = screenshotResult.colorSpace
                             val bitmap = Bitmap.wrapHardwareBuffer(hardwareBuffer, colorSpace)
-                            hardwareBuffer.close() // Prevent native memory leaks
+                            hardwareBuffer.close()
 
                             if (bitmap != null) {
-                                // Copy to a software-backed bitmap to allow editing
                                 val softwareBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-                                // Launch custom WindowManager Editor Overlay
                                 showMarkupOverlay(softwareBitmap)
                             } else {
                                 performLegacyScreenshot()
@@ -131,7 +120,6 @@ class ScreenshotAccessibilityService : AccessibilityService() {
                 performLegacyScreenshot()
             }
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            // Android 9-10 fallback
             performLegacyScreenshot()
         } else {
             Toast.makeText(this, "Fitur ini butuh Android 9 (Pie) ke atas", Toast.LENGTH_LONG).show()
@@ -147,9 +135,6 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         }
     }
 
-    /**
-     * Memunculkan UI Editor secara instan langsung di atas WindowManager sistem
-     */
     private fun showMarkupOverlay(bitmap: Bitmap) {
         if (isOverlayShowing) return
 
@@ -162,29 +147,28 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         canvasView?.bitmap = bitmap
 
         dialogCancelOverlay = oView.findViewById(R.id.dialogCancelOverlay)
+        optionsPanel = oView.findViewById(R.id.optionsPanel)
 
-        // Bind bottom tools
-        val toolBrush = oView.findViewById<TextView>(R.id.toolBrush)
-        val toolShape = oView.findViewById<TextView>(R.id.toolShape)
-        val toolCrop = oView.findViewById<TextView>(R.id.toolCrop)
+        // Bind floating bottom buttons
+        val toolBrush = oView.findViewById<ImageView>(R.id.toolBrush)
+        val toolCrop = oView.findViewById<ImageView>(R.id.toolCrop)
+        val btnSave = oView.findViewById<ImageView>(R.id.btnSave)
+        val btnShare = oView.findViewById<ImageView>(R.id.btnShare)
 
-        // Option panels
-        val panelBrushOptions = oView.findViewById<LinearLayout>(R.id.panelBrushOptions)
-        val panelShapeOptions = oView.findViewById<LinearLayout>(R.id.panelShapeOptions)
-        val panelCropOptions = oView.findViewById<LinearLayout>(R.id.panelCropOptions)
-        val seekBarBrushSize = oView.findViewById<SeekBar>(R.id.seekBarBrushSize)
-
-        // Setup Actions Click Listeners
-        oView.findViewById<TextView>(R.id.btnCancel).setOnClickListener {
+        // Bind Batal button click handler
+        oView.findViewById<ImageView>(R.id.btnCancel).setOnClickListener {
             handleCancelClick()
         }
-        oView.findViewById<ImageView>(R.id.btnUndo).setOnClickListener {
-            canvasView?.undo()
-        }
-        oView.findViewById<ImageView>(R.id.btnRedo).setOnClickListener {
-            canvasView?.redo()
-        }
-        oView.findViewById<ImageView>(R.id.btnShare).setOnClickListener {
+
+        // Bind Undo/Redo listeners inside Brush panel
+        oView.findViewById<ImageView>(R.id.btnUndoBrush).setOnClickListener { canvasView?.undo() }
+        oView.findViewById<ImageView>(R.id.btnRedoBrush).setOnClickListener { canvasView?.redo() }
+
+        // Bind Undo/Redo listeners inside Crop panel
+        oView.findViewById<ImageView>(R.id.btnUndoCrop).setOnClickListener { canvasView?.undo() }
+        oView.findViewById<ImageView>(R.id.btnRedoCrop).setOnClickListener { canvasView?.redo() }
+        
+        btnShare.setOnClickListener {
             val finalBmp = canvasView?.getFinalBitmap()
             if (finalBmp != null) {
                 handleShare(finalBmp)
@@ -193,12 +177,13 @@ class ScreenshotAccessibilityService : AccessibilityService() {
                 Toast.makeText(this, "Gagal memproses gambar", Toast.LENGTH_SHORT).show()
             }
         }
-        oView.findViewById<TextView>(R.id.btnSave).setOnClickListener {
+        
+        btnSave.setOnClickListener {
             val finalBmp = canvasView?.getFinalBitmap()
             if (finalBmp != null) {
                 val success = saveBitmapToGallery(finalBmp)
                 if (success) {
-                    Toast.makeText(this, "Screenshot berhasil disimpan ke Galeri", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Screenshot saved", Toast.LENGTH_SHORT).show()
                     dismissMarkupOverlay()
                 } else {
                     Toast.makeText(this, "Gagal menyimpan gambar", Toast.LENGTH_SHORT).show()
@@ -208,7 +193,7 @@ class ScreenshotAccessibilityService : AccessibilityService() {
             }
         }
 
-        // Dialog Cancel Confirmations
+        // Dialog buttons
         oView.findViewById<Button>(R.id.dialogCancelBtnNo).setOnClickListener {
             dialogCancelOverlay?.visibility = View.GONE
         }
@@ -216,23 +201,22 @@ class ScreenshotAccessibilityService : AccessibilityService() {
             dismissMarkupOverlay()
         }
 
-        // Setup Bottom Tool Listeners
+        // Setup bottom tools selection
         toolBrush.setOnClickListener {
-            switchTool(MarkupCanvasView.Tool.BRUSH, toolBrush, oView)
-        }
-        toolShape.setOnClickListener {
-            switchTool(MarkupCanvasView.Tool.SHAPE, toolShape, oView)
+            switchTool(MarkupCanvasView.Tool.BRUSH, toolBrush, toolCrop, oView)
         }
         toolCrop.setOnClickListener {
-            switchTool(MarkupCanvasView.Tool.CROP, toolCrop, oView)
+            switchTool(MarkupCanvasView.Tool.CROP, toolCrop, toolBrush, oView)
         }
 
+        // Initialize default tool visual state (Brush is active)
+        highlightTool(toolBrush, true)
+        highlightTool(toolCrop, false)
+
         setupColorPalette(oView)
-        setupBrushSizeSeekbar(seekBarBrushSize)
-        setupShapeSelectors(oView)
+        setupBrushSizeControls(oView)
         setupCropSelectors(oView)
 
-        // Window Manager Layout Configuration
         val layoutParams = WindowManager.LayoutParams().apply {
             type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
             format = PixelFormat.TRANSLUCENT
@@ -257,6 +241,7 @@ class ScreenshotAccessibilityService : AccessibilityService() {
             overlayView = null
             canvasView = null
             dialogCancelOverlay = null
+            optionsPanel = null
             isOverlayShowing = false
         }
     }
@@ -270,109 +255,128 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun switchTool(tool: MarkupCanvasView.Tool, toolTextView: TextView, root: View) {
+    private fun switchTool(tool: MarkupCanvasView.Tool, activeView: ImageView, inactiveView: ImageView, root: View) {
         canvasView?.activeTool = tool
-        
-        val toolBrush = root.findViewById<TextView>(R.id.toolBrush)
-        val toolShape = root.findViewById<TextView>(R.id.toolShape)
-        val toolCrop = root.findViewById<TextView>(R.id.toolCrop)
+        highlightTool(activeView, true)
+        highlightTool(inactiveView, false)
 
-        val tools = listOf(toolBrush, toolShape, toolCrop)
-        for (t in tools) {
-            t.setTextColor(Color.parseColor("#88FFFFFF"))
-            t.setTypeface(null, android.graphics.Typeface.NORMAL)
-        }
+        val panelCropOptionsLayout = root.findViewById<LinearLayout>(R.id.panelCropOptionsLayout)
 
-        toolTextView.setTextColor(Color.parseColor("#1A73E8"))
-        toolTextView.setTypeface(null, android.graphics.Typeface.BOLD)
-
-        val panelBrushOptions = root.findViewById<LinearLayout>(R.id.panelBrushOptions)
-        val panelShapeOptions = root.findViewById<LinearLayout>(R.id.panelShapeOptions)
-        val panelCropOptions = root.findViewById<LinearLayout>(R.id.panelCropOptions)
-
-        panelBrushOptions.visibility = View.GONE
-        panelShapeOptions.visibility = View.GONE
-        panelCropOptions.visibility = View.GONE
-
-        when (tool) {
-            MarkupCanvasView.Tool.BRUSH, MarkupCanvasView.Tool.SHAPE -> {
-                panelBrushOptions.visibility = View.VISIBLE
-                if (tool == MarkupCanvasView.Tool.SHAPE) {
-                    panelShapeOptions.visibility = View.VISIBLE
-                }
-            }
-            MarkupCanvasView.Tool.CROP -> {
-                panelCropOptions.visibility = View.VISIBLE
-            }
+        if (tool == MarkupCanvasView.Tool.BRUSH) {
+            optionsPanel?.visibility = View.VISIBLE
+            panelCropOptionsLayout?.visibility = View.GONE
+        } else {
+            optionsPanel?.visibility = View.GONE
+            panelCropOptionsLayout?.visibility = View.VISIBLE
         }
         canvasView?.invalidate()
     }
 
+    private fun highlightTool(view: ImageView, active: Boolean) {
+        if (active) {
+            view.setColorFilter(Color.parseColor("#FFA000")) // Orange accent for active
+            view.setBackgroundResource(R.drawable.bg_circle_btn)
+        } else {
+            view.setColorFilter(Color.parseColor("#37474F")) // Dark slate for inactive
+            view.background = null
+        }
+    }
+
     private fun setupColorPalette(root: View) {
         val colorViews = listOf(
-            Pair(root.findViewById<View>(R.id.colorRed), Color.RED),
-            Pair(root.findViewById<View>(R.id.colorYellow), Color.parseColor("#FFD700")),
-            Pair(root.findViewById<View>(R.id.colorGreen), Color.GREEN),
-            Pair(root.findViewById<View>(R.id.colorBlue), Color.BLUE),
-            Pair(root.findViewById<View>(R.id.colorWhite), Color.WHITE),
-            Pair(root.findViewById<View>(R.id.colorBlack), Color.BLACK)
+            Pair(root.findViewById<ImageView>(R.id.colorRed), colors[0]),
+            Pair(root.findViewById<ImageView>(R.id.colorYellow), colors[1]),
+            Pair(root.findViewById<ImageView>(R.id.colorGreen), colors[2]),
+            Pair(root.findViewById<ImageView>(R.id.colorBlue), colors[3]),
+            Pair(root.findViewById<ImageView>(R.id.colorCyan), colors[4]),
+            Pair(root.findViewById<ImageView>(R.id.colorTosca), colors[5]),
+            Pair(root.findViewById<ImageView>(R.id.colorWhite), colors[6]),
+            Pair(root.findViewById<ImageView>(R.id.colorBlack), colors[7])
         )
 
         for (item in colorViews) {
             val view = item.first
             val color = item.second
 
+            // Draw solid color circle
             val gd = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
                 setColor(color)
-                setStroke(if (color == activeColor) 6 else 2, if (color == Color.WHITE) Color.LTGRAY else Color.WHITE)
+                setStroke(2, if (color == Color.WHITE) Color.LTGRAY else Color.TRANSPARENT)
             }
             view.background = gd
+
+            // Set checkmark visibility
+            if (color == activeColor) {
+                view.setColorFilter(if (color == Color.WHITE || color == Color.YELLOW || color == Color.CYAN) Color.BLACK else Color.WHITE)
+            } else {
+                view.setColorFilter(Color.TRANSPARENT)
+            }
 
             view.setOnClickListener {
                 activeColor = color
                 canvasView?.brushColor = color
                 
+                // Update checks
                 for (other in colorViews) {
                     val otherView = other.first
                     val otherColor = other.second
-                    val otherGd = GradientDrawable().apply {
-                        shape = GradientDrawable.OVAL
-                        setColor(otherColor)
-                        setStroke(if (otherColor == activeColor) 6 else 2, if (otherColor == Color.WHITE) Color.LTGRAY else Color.WHITE)
+                    if (otherColor == activeColor) {
+                        otherView.setColorFilter(if (otherColor == Color.WHITE || otherColor == Color.YELLOW || otherColor == Color.CYAN) Color.BLACK else Color.WHITE)
+                    } else {
+                        otherView.setColorFilter(Color.TRANSPARENT)
                     }
-                    otherView.background = otherGd
                 }
             }
         }
     }
 
-    private fun setupBrushSizeSeekbar(seekBarBrushSize: SeekBar) {
+    private fun setupBrushSizeControls(root: View) {
+        val seekBarBrushSize = root.findViewById<SeekBar>(R.id.seekBarBrushSize)
+        val txtSizePercentage = root.findViewById<TextView>(R.id.txtSizePercentage)
+
+        // Bind preset dots (4 dots)
+        val presetXS = root.findViewById<View>(R.id.presetSizeXS)
+        val presetS = root.findViewById<View>(R.id.presetSizeS)
+        val presetM = root.findViewById<View>(R.id.presetSizeM)
+        val presetL = root.findViewById<View>(R.id.presetSizeL)
+
+        // Draw circular dots
+        val makeDot = { v: View, size: Int ->
+            val gd = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.WHITE)
+            }
+            v.background = gd
+            v.layoutParams.width = size
+            v.layoutParams.height = size
+            v.requestLayout()
+        }
+        
+        makeDot(presetXS, 12)
+        makeDot(presetS, 20)
+        makeDot(presetM, 28)
+        makeDot(presetL, 36)
+
+        val updateSeekbar = { progress: Int ->
+            seekBarBrushSize.progress = progress
+            canvasView?.brushSize = progress.coerceAtLeast(4).toFloat()
+            txtSizePercentage.text = "$progress%"
+        }
+
+        presetXS.setOnClickListener { updateSeekbar(8) }
+        presetS.setOnClickListener { updateSeekbar(24) }
+        presetM.setOnClickListener { updateSeekbar(48) }
+        presetL.setOnClickListener { updateSeekbar(80) }
+
         seekBarBrushSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 canvasView?.brushSize = progress.coerceAtLeast(4).toFloat()
+                txtSizePercentage.text = "$progress%"
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-    }
-
-    private fun setupShapeSelectors(root: View) {
-        root.findViewById<Button>(R.id.btnShapeRect).setOnClickListener {
-            canvasView?.shapeType = ShapeElement.Type.RECTANGLE
-        }
-        root.findViewById<Button>(R.id.btnShapeRoundRect).setOnClickListener {
-            canvasView?.shapeType = ShapeElement.Type.ROUNDED_RECTANGLE
-        }
-        root.findViewById<Button>(R.id.btnShapeCircle).setOnClickListener {
-            canvasView?.shapeType = ShapeElement.Type.CIRCLE
-        }
-        root.findViewById<Button>(R.id.btnShapeLine).setOnClickListener {
-            canvasView?.shapeType = ShapeElement.Type.LINE
-        }
-        root.findViewById<Button>(R.id.btnShapeArrow).setOnClickListener {
-            canvasView?.shapeType = ShapeElement.Type.ARROW
-        }
     }
 
     private fun setupCropSelectors(root: View) {
@@ -414,7 +418,6 @@ class ScreenshotAccessibilityService : AccessibilityService() {
                 }
             }
         } else {
-            // Legacy storage fallback (Android 9/Pie)
             @Suppress("DEPRECATION")
             val imagesDir = android.os.Environment.getExternalStoragePublicDirectory(
                 android.os.Environment.DIRECTORY_PICTURES
@@ -453,7 +456,6 @@ class ScreenshotAccessibilityService : AccessibilityService() {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             
-            // To start a share chooser from a Service context, we MUST set FLAG_ACTIVITY_NEW_TASK
             val chooserIntent = Intent.createChooser(intent, "Bagikan via").apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }

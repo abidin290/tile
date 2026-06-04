@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.DashPathEffect
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
@@ -22,13 +23,12 @@ class MarkupCanvasView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     enum class Tool {
-        BRUSH, SHAPE, CROP
+        BRUSH, CROP
     }
 
     var activeTool = Tool.BRUSH
     var brushColor = Color.RED
     var brushSize = 12f
-    var shapeType = ShapeElement.Type.RECTANGLE
     
     var bitmap: Bitmap? = null
         set(value) {
@@ -178,9 +178,6 @@ class MarkupCanvasView @JvmOverloads constructor(
                     }
                     oCanvas.drawPath(it, p)
                 }
-            } else if (activeTool == Tool.SHAPE) {
-                val tempShape = ShapeElement(shapeType, startX, startY, currentX, currentY, brushColor, brushSize)
-                tempShape.draw(oCanvas)
             }
         }
 
@@ -189,7 +186,37 @@ class MarkupCanvasView @JvmOverloads constructor(
 
         if (activeTool == Tool.CROP) {
             drawCropOverlay(canvas)
+        } else {
+            // Draw a subtle translucent crop border in other modes to indicate the crop bounds
+            drawSubtleCropBorder(canvas)
         }
+    }
+
+    private fun drawSubtleCropBorder(canvas: Canvas) {
+        val tl = imageToViewCoords(cropRect.left, cropRect.top)
+        val br = imageToViewCoords(cropRect.right, cropRect.bottom)
+
+        val cl = tl[0]
+        val ct = tl[1]
+        val cr = br[0]
+        val cb = br[1]
+
+        val borderPaint = Paint().apply {
+            color = Color.WHITE
+            style = Paint.Style.STROKE
+            strokeWidth = 3f
+        }
+        canvas.drawRect(cl, ct, cr, cb, borderPaint)
+
+        // Draw overlay shadow outside the crop area (same dark shadow as crop mode for consistency)
+        val darkPaint = Paint().apply {
+            color = Color.parseColor("#99000000") // Consistent shadow
+            style = Paint.Style.FILL
+        }
+        canvas.drawRect(0f, 0f, width.toFloat(), ct, darkPaint)
+        canvas.drawRect(0f, cb, width.toFloat(), height.toFloat(), darkPaint)
+        canvas.drawRect(0f, ct, cl, cb, darkPaint)
+        canvas.drawRect(cr, ct, width.toFloat(), cb, darkPaint)
     }
 
     private fun viewToImageCoords(vx: Float, vy: Float): FloatArray {
@@ -240,13 +267,6 @@ class MarkupCanvasView @JvmOverloads constructor(
                         startX = ix
                         startY = iy
                     }
-                    Tool.SHAPE -> {
-                        isDrawing = true
-                        startX = ix
-                        startY = iy
-                        currentX = ix
-                        currentY = iy
-                    }
                     Tool.CROP -> {
                         activeCropHandle = getCropHandleAt(x, y)
                     }
@@ -260,13 +280,6 @@ class MarkupCanvasView @JvmOverloads constructor(
                     Tool.BRUSH -> {
                         if (isDrawing) {
                             currentPath?.lineTo(ix, iy)
-                            invalidate()
-                        }
-                    }
-                    Tool.SHAPE -> {
-                        if (isDrawing) {
-                            currentX = ix
-                            currentY = iy
                             invalidate()
                         }
                     }
@@ -288,12 +301,6 @@ class MarkupCanvasView @JvmOverloads constructor(
                                 elements.add(PathElement(it, brushColor, brushSize, false))
                                 redoStack.clear()
                             }
-                        }
-                    }
-                    Tool.SHAPE -> {
-                        if (isDrawing) {
-                            elements.add(ShapeElement(shapeType, startX, startY, currentX, currentY, brushColor, brushSize))
-                            redoStack.clear()
                         }
                     }
                     Tool.CROP -> {
